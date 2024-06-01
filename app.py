@@ -29,13 +29,23 @@ JST = pytz.timezone('Asia/Tokyo')
 
 
 # deploy on heroku
-DATABASE_URL = os.environ['DATABASE_URL']
+#DATABASE_URL = os.environ['DATABASE_URL']
+
+#local deploy
+
+#login info
+your_username = "postgres"
+your_port = "5432"
+your_database_name = "postgres"
+your_host = "localhost"
+your_password = "B2s7I2i9"
+DATABASE_URL = f"postgresql://{your_username}:{your_password}@{your_host}:{your_port}/{your_database_name}?sslmode=disable"
 
 app = Flask(__name__)
 
 # connect to database
 def connect_to_database():
-    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+    conn = psycopg2.connect(DATABASE_URL, sslmode='disable')
     return conn
 
 #configure session to use filesystem
@@ -784,7 +794,7 @@ def delete_goal_and_room():
 #Token取得
 
 
-
+"""
 # 本番環境
 YOUR_CHANNEL_ACCESS_TOKEN = os.environ["CHANNEL_ACCESS_TOKEN"]
 YOUR_CHANNEL_SECRET = os.environ["CHANNEL_SECRET"]
@@ -1092,6 +1102,7 @@ sched = BackgroundScheduler(daemon=True)
 sched.add_job(schedule_message, 'cron', hour=20, minute=0, timezone=JST)
 sched.add_job(delete_goal_and_room, 'interval', minutes=1, timezone=JST)
 sched.start()
+"""
 
 # run app
 if __name__ == "__main__":
