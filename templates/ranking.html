@@ -1,28 +1,26 @@
-<!-- templates/ranking.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <title>Progress Ranking</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Progress Ranking</h1>
+    <h1>どれぐらい目標達成したかランキング！！</h1>
     <table>
         <thead>
             <tr>
-                <th>Rank</th>
-                <th>User ID</th>
-                <th>Progress Rate</th>
+                <th>順位</th>
+                <th>ユーザーネーム</th>
+                <th>進捗率</th>
             </tr>
         </thead>
         <tbody>
-            {% for index, ranking in enumerate(rankings) %}
-            <tr>
-                <td>{{ index + 1 }}</td>
-                <td>{{ ranking.user_id }}</td>
-                <td>{{ ranking.progress_rate }}%</td>
-            </tr>
+            {% for index, ranking in enumerate(rankings, start=1) %}
+                <tr>
+                    <td>{{ index }}</td>
+                    <td>{{ ranking.name }}</td>
+                    <td>{{ ranking.progress_rate }}%</td>
+                </tr>
             {% endfor %}
         </tbody>
     </table>

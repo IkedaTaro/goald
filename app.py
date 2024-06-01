@@ -796,8 +796,13 @@ def progress_ranking():
     try:
         with connect_to_database() as conn:
             with conn.cursor(cursor_factory=DictCursor) as cur:
-                # Get all users' progress rates
-                cur.execute("SELECT user_id, progress_rate FROM goals ORDER BY progress_rate DESC")
+                # Get all users' progress rates along with their usernames
+                cur.execute("""
+                    SELECT users.name, goals.progress_rate 
+                    FROM goals 
+                    JOIN users ON goals.user_id = users.id 
+                    ORDER BY goals.progress_rate DESC
+                """)
                 rankings = cur.fetchall()
     except Exception as e:
         print(e)
