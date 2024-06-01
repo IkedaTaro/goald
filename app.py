@@ -789,6 +789,27 @@ def delete_goal_and_room():
         print(e)
         return render_template("apology.html", msg="失敗しました")
 
+@app.route("/progress_ranking")
+@login_required
+def progress_ranking():
+    """Display progress ranking"""
+    try:
+        with connect_to_database() as conn:
+            with conn.cursor(cursor_factory=DictCursor) as cur:
+                # Get all users' progress rates
+                cur.execute("SELECT user_id, progress_rate FROM goals ORDER BY progress_rate DESC")
+                rankings = cur.fetchall()
+    except Exception as e:
+        print(e)
+        return render_template("apology.html", msg="失敗しました")
+
+    # Render the rankings in the template, passing the enumerate function　←enumerateを追加
+    return render_template("ranking.html", rankings=rankings, enumerate=enumerate)
+    
+    # Render the rankings in the template　←元バージョン
+    #return render_template("ranking.html", rankings=rankings)
+
+
     
 # linebot 
 #Token取得
