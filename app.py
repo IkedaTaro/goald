@@ -804,15 +804,44 @@ def progress_ranking():
                     ORDER BY goals.progress_rate DESC
                 """)
                 rankings = cur.fetchall()
+
     except Exception as e:
         print(e)
         return render_template("apology.html", msg="失敗しました")
 
     # Render the rankings in the template, passing the enumerate function　←enumerateを追加
     return render_template("ranking.html", rankings=rankings, enumerate=enumerate)
-    
-    # Render the rankings in the template　←元バージョン
-    #return render_template("ranking.html", rankings=rankings)
+
+@app.route("/dummy_progress_ranking")
+@login_required
+def dummy_progress_ranking():
+    """Display dummy_progress ranking"""
+    try:
+        with connect_to_database() as conn:
+            with conn.cursor(cursor_factory=DictCursor) as cur:
+                # Get all users' progress rates along with their usernames
+                cur.execute("""
+                    SELECT users.name, goals.progress_rate 
+                    FROM goals 
+                    JOIN users ON goals.user_id = users.id 
+                    ORDER BY goals.progress_rate DESC
+                """)
+                rankings = cur.fetchall()
+
+                #add dummy
+                dummy_data = [
+                    {'name': 'ダミーユーザー1', 'progress_rate': 0},
+                    {'name': 'ダミーユーザー2', 'progress_rate': 0},
+                ]
+                #ランキングリストの最後にダミーを追加
+                rankings.extend(dummy_data)
+
+    except Exception as e:
+        print(e)
+        return render_template("apology.html", msg="失敗しました")
+
+    # Render the rankings in the template, passing the enumerate function　←enumerateを追加
+    return render_template("dummy_ranking.html", rankings=rankings, enumerate=enumerate)
 
 
     
