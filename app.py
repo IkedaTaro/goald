@@ -6,7 +6,7 @@ from functools import wraps
 from datetime import datetime
 import random
 import math
-import os
+import os   
 import psycopg2
 import schedule
 from time import sleep
@@ -22,7 +22,12 @@ from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage,
 )
 import pytz
-from apscheduler.schedulers.background import BackgroundScheduler  
+from apscheduler.schedulers.background import BackgroundScheduler
+
+from faker import Faker
+import random
+from operator import itemgetter
+
 
 # timezone
 JST = pytz.timezone('Asia/Tokyo')
@@ -812,36 +817,101 @@ def progress_ranking():
     # Render the rankings in the template, passing the enumerate function　←enumerateを追加
     return render_template("ranking.html", rankings=rankings, enumerate=enumerate)
 
+
 @app.route("/dummy_progress_ranking")
 @login_required
 def dummy_progress_ranking():
-    """Display dummy_progress ranking"""
+    """Display dummy progress ranking"""
     try:
         with connect_to_database() as conn:
             with conn.cursor(cursor_factory=DictCursor) as cur:
-                # Get all users' progress rates along with their usernames
+                # 本物のユーザーの進捗率を取得
                 cur.execute("""
                     SELECT users.name, goals.progress_rate 
                     FROM goals 
                     JOIN users ON goals.user_id = users.id 
                     ORDER BY goals.progress_rate DESC
                 """)
-                rankings = cur.fetchall()
-
-                #add dummy
-                dummy_data = [
-                    {'name': 'ダミーユーザー1', 'progress_rate': 0},
-                    {'name': 'ダミーユーザー2', 'progress_rate': 0},
+                real_users_rankings = cur.fetchall()
+                
+                # ニックネームリストを作成
+                nicknames = [
+                    "Sakura2024", "TakaHiro", "KawaNoSuke", "YukiHana", "Ryuichi99", "AkiNoYoru", 
+                    "HanaSaku", "SoraTori", "FujiSan", "NekoLover", "MizuNoKaze", "SakuraPetal", "KuroNeko", 
+                    "InuChan", "ShiroKuma", "ToriHane", "YamaMichi", "RingoAme", "KazeNoYume", "YumeMiru", 
+                    "TsukiHikari", "UmiNoSora", "TsubasaFly", "AkaSora", "AoiYuki", "HoshiNoYoru", "MomoChan", 
+                    "ChiisaiHana", "AsaKaze", "KumoNoUe", "ShizuNami", "HanaNoNioi", "YoruNoKaze", "TakaSora", 
+                    "KoiNoUta", "KuroUsagi", "HoshiSora", "KazeHana", "ShadowNinja", "SamuraiKen", "DragonSlayer", 
+                    "HikariMage", "KazeWarrior", "AkaRonin", "YukiSwordsman", "RyuTamer", "KuroSamurai", 
+                    "SakuraKnight", "TenshiArcher", "KumoMonk", "RaiMage", "ToraFighter", "HanaPriest", 
+                    "KazeNoSenshi", "SoraSorcerer", "TsukiNinja", "YamiShogun", "SeiryuWarrior", "KitsuneMage", 
+                    "InuRanger", "MizuRonin", "FujiSage", "KumoNinja", "HoshiSamurai", "NekoWarrior", "TsubasaKnight", 
+                    "RyuMage", "AoiSwordsman", "TenshiNoKen", "MoriPriest", "TakaRanger", "HanaMonk", "ToriNoFighter", 
+                    "KazeNoShogun", "YukiArcher", "SoraPriest", "KuroMage", "RaiWarrior", "AkaNinja", "YamiRonin", 
+                    "TsukiSamurai", "SeiryuKnight", "ToraMage", "KitsuneMonk", "HanaSorcerer", "KumoNoRanger", 
+                    "SoraNoSage", "TenshiNoSwordsman", "RyuNoSamurai", "KazeNoKnight", "MizuFighter", "FujiNoMage", 
+                    "HoshiNoMonk", "TsubasaNoPriest", "KumoNoShogun", "AoiWarrior", "KitsuneNoRonin", "SeiryuNoArcher", 
+                    "TsukiNoSorcerer", "ToraNoSwordsman", "KazeNoSamurai", "HanaNoKnight", "RyuNoMage", "AkaSwordsman", 
+                    "YamiWarrior", "TenshiNoRonin", "SoraNoSamurai", "KuroNoArcher", "MoriNoPriest", "TsubasaNoMage", 
+                    "HoshiNoWarrior", "YukiNoMonk", "InuNoSorcerer", "TakaNoShogu"
                 ]
-                #ランキングリストの最後にダミーを追加
-                rankings.extend(dummy_data)
+
+                # 0から100の間のランダムな進捗率を生成し、ダミーデータを生成
+                dummy_data = [{'name': random.choice(nicknames), 'progress_rate': random.randint(0, 100)} for _ in range(100)]
+                
+                # 本物のユーザーとダミーユーザーを含むランキングリストを作成
+                combined_rankings = real_users_rankings + dummy_data
+
+                # 進捗率でランキングリストを降順にソート
+                combined_rankings.sort(key=lambda x: x['progress_rate'], reverse=True)
+
+                # ランクを付ける
+                rankings_with_ranks = [
+                    {'name': user['name'], 'progress_rate': user['progress_rate'], 'rank': index + 1}
+                    for index, user in enumerate(combined_rankings)
+                ]
+               
+                # # 順位を付ける
+                # rankings_with_ranks = [
+                #     {'name': row[0], 'progress_rate': row[1], 'rank': index + 1}
+                #     for index, row in enumerate(rankings)
+                # ]
+                
+                # 0から100の間のランダムな進捗率を生成し、ダミーデータを生成
+                #dummy_data = [{'name': random.choice(nicknames), 'progress_rate': random.randint(0, 100)} for _ in range(100)]
+
+                # 本物のユーザーとダミーユーザーを含むランキングリストを作成
+                #combined_rankings = real_users_rankings + dummy_data
+
+                # 進捗率でランキングリストを降順にソート
+                #combined_rankings.sort(key=itemgetter('progress_rate'), reverse=True)
+
+                # ランクを付ける
+                #for i, user in enumerate(combined_rankings, start=1):
+                #    user['rank'] = i
+
+                # デバッグ用ログを追加
+                #for user in combined_rankings:
+                #    print(f"Rank: {user['rank']}, Name: {user['name']}, Progress Rate: {user['progress_rate']}")
+
+                # ニックネームをランダムに選んでダミーデータを生成
+                #dummy_data = [{'name': random.choice(nicknames), 'progress_rate': random_progress_rate} for _ in range(100)]
+                
+                # Fakerライブラリを使用して日本人の名前のダミーデータを生成
+                # fake = Faker('ja_JP')
+                # dummy_data = [{'name': fake.name(), 'progress_rate': random_progress_rate} for _ in range(100)]
+
+
+                # ランキングリストの最後にダミーデータを追加
+                #rankings.extend(dummy_data)
 
     except Exception as e:
-        print(e)
+        # Log the exception (具体的なログ方法はログライブラリに依存)
+        print(f"Error: {e}")
         return render_template("apology.html", msg="失敗しました")
 
     # Render the rankings in the template, passing the enumerate function　←enumerateを追加
-    return render_template("dummy_ranking.html", rankings=rankings, enumerate=enumerate)
+    return render_template("dummy_ranking.html", rankings=rankings_with_ranks, enumerate=enumerate)
 
 
     
