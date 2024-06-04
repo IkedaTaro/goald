@@ -27,30 +27,30 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from faker import Faker
 import random
 from operator import itemgetter
-
+import portalocker
 
 # timezone
 JST = pytz.timezone('Asia/Tokyo')
 
 
 # deploy on heroku
-#DATABASE_URL = os.environ['DATABASE_URL']
+DATABASE_URL = os.environ['DATABASE_URL']
 
 #local deploy
 
-#login info
-your_username = "postgres"
-your_port = "5432"
-your_database_name = "postgres"
-your_host = "localhost"
-your_password = "B2s7I2i9"
-DATABASE_URL = f"postgresql://{your_username}:{your_password}@{your_host}:{your_port}/{your_database_name}?sslmode=disable"
+# #login info
+# your_username = "postgres"
+# your_port = "5432"
+# your_database_name = "postgres"
+# your_host = "localhost"
+# your_password = "B2s7I2i9"
+# DATABASE_URL = f"postgresql://{your_username}:{your_password}@{your_host}:{your_port}/{your_database_name}?sslmode=disable"
 
 app = Flask(__name__)
 
 # connect to database
 def connect_to_database():
-    conn = psycopg2.connect(DATABASE_URL, sslmode='disable')
+    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
     return conn
 
 #configure session to use filesystem
