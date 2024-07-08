@@ -34,23 +34,24 @@ JST = pytz.timezone('Asia/Tokyo')
 
 
 # deploy on heroku
-DATABASE_URL = os.environ['DATABASE_URL']
+# DATABASE_URL = os.environ['DATABASE_URL']
 
 #local deploy
 
-# #login info
-# your_username = "postgres"
-# your_port = "5432"
-# your_database_name = "postgres"
-# your_host = "localhost"
-# your_password = "B2s7I2i9"
-# DATABASE_URL = f"postgresql://{your_username}:{your_password}@{your_host}:{your_port}/{your_database_name}?sslmode=disable"
+#login info
+your_username = "postgres"
+your_port = "5432"
+your_database_name = "postgres"
+your_host = "localhost"
+your_password = "B2s7I2i9"
+DATABASE_URL = f"postgresql://{your_username}:{your_password}@{your_host}:{your_port}/{your_database_name}?sslmode=disable"
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # セッションを使用するための秘密鍵を設定
 
 # connect to database
 def connect_to_database():
-    conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+    conn = psycopg2.connect(DATABASE_URL, sslmode='disable')
     return conn
 
 #configure session to use filesystem
@@ -818,6 +819,7 @@ def progress_ranking():
     return render_template("ranking.html", rankings=rankings, enumerate=enumerate)
 
 
+
 @app.route("/dummy_progress_ranking")
 @login_required
 def dummy_progress_ranking():
@@ -833,32 +835,27 @@ def dummy_progress_ranking():
                     ORDER BY goals.progress_rate DESC
                 """)
                 real_users_rankings = cur.fetchall()
-                
-                # ニックネームリストを作成
-                nicknames = [
-                    "Sakura2024", "TakaHiro", "KawaNoSuke", "YukiHana", "Ryuichi99", "AkiNoYoru", 
-                    "HanaSaku", "SoraTori", "FujiSan", "NekoLover", "MizuNoKaze", "SakuraPetal", "KuroNeko", 
-                    "InuChan", "ShiroKuma", "ToriHane", "YamaMichi", "RingoAme", "KazeNoYume", "YumeMiru", 
-                    "TsukiHikari", "UmiNoSora", "TsubasaFly", "AkaSora", "AoiYuki", "HoshiNoYoru", "MomoChan", 
-                    "ChiisaiHana", "AsaKaze", "KumoNoUe", "ShizuNami", "HanaNoNioi", "YoruNoKaze", "TakaSora", 
-                    "KoiNoUta", "KuroUsagi", "HoshiSora", "KazeHana", "ShadowNinja", "SamuraiKen", "DragonSlayer", 
-                    "HikariMage", "KazeWarrior", "AkaRonin", "YukiSwordsman", "RyuTamer", "KuroSamurai", 
-                    "SakuraKnight", "TenshiArcher", "KumoMonk", "RaiMage", "ToraFighter", "HanaPriest", 
-                    "KazeNoSenshi", "SoraSorcerer", "TsukiNinja", "YamiShogun", "SeiryuWarrior", "KitsuneMage", 
-                    "InuRanger", "MizuRonin", "FujiSage", "KumoNinja", "HoshiSamurai", "NekoWarrior", "TsubasaKnight", 
-                    "RyuMage", "AoiSwordsman", "TenshiNoKen", "MoriPriest", "TakaRanger", "HanaMonk", "ToriNoFighter", 
-                    "KazeNoShogun", "YukiArcher", "SoraPriest", "KuroMage", "RaiWarrior", "AkaNinja", "YamiRonin", 
-                    "TsukiSamurai", "SeiryuKnight", "ToraMage", "KitsuneMonk", "HanaSorcerer", "KumoNoRanger", 
-                    "SoraNoSage", "TenshiNoSwordsman", "RyuNoSamurai", "KazeNoKnight", "MizuFighter", "FujiNoMage", 
-                    "HoshiNoMonk", "TsubasaNoPriest", "KumoNoShogun", "AoiWarrior", "KitsuneNoRonin", "SeiryuNoArcher", 
-                    "TsukiNoSorcerer", "ToraNoSwordsman", "KazeNoSamurai", "HanaNoKnight", "RyuNoMage", "AkaSwordsman", 
-                    "YamiWarrior", "TenshiNoRonin", "SoraNoSamurai", "KuroNoArcher", "MoriNoPriest", "TsubasaNoMage", 
-                    "HoshiNoWarrior", "YukiNoMonk", "InuNoSorcerer", "TakaNoShogu"
-                ]
 
-                # 0から100の間のランダムな進捗率を生成し、ダミーデータを生成
-                dummy_data = [{'name': random.choice(nicknames), 'progress_rate': random.randint(0, 100)} for _ in range(100)]
-                
+                 # セッションからダミーデータを取得
+                if 'dummy_data' not in session:
+                    # ニックネームリストを作成
+                    nicknames = [
+                    "山田 太郎", "佐藤 花子", "鈴木 一郎", "高橋 美咲", "田中 健太", "伊藤 純子", 
+                    "渡辺 明", "中村 真由美", "小林 正人", "加藤 里奈", "松本 拓也", "藤田 優子", 
+                    "斉藤 直樹", "岡田 さゆり", "村上 健司", "近藤 美和", "石川 悠太", "長谷川 美紀", 
+                    "木村 大輔", "林 千尋", "池田 翔", "橋本 梨花", "山口 剛", "清水 あかり", "森 大地", 
+                    "浅野 亮介", "原 友里", "河野 亮", "松井 愛美"
+                    ] 
+
+                    # 0から100の間のランダムな進捗率を生成し、ダミーデータを生成
+                    dummy_data = [{'name': random.choice(nicknames), 'progress_rate': random.randint(0, 100)} for _ in range(10)]
+                    
+                    # セッションに保存
+                    session['dummy_data'] = dummy_data
+                else:
+                    # セッションからダミーデータを取得
+                    dummy_data = session['dummy_data']
+
                 # 本物のユーザーとダミーユーザーを含むランキングリストを作成
                 combined_rankings = real_users_rankings + dummy_data
 
@@ -912,6 +909,22 @@ def dummy_progress_ranking():
 
     # Render the rankings in the template, passing the enumerate function　←enumerateを追加
     return render_template("dummy_ranking.html", rankings=rankings_with_ranks, enumerate=enumerate)
+
+@app.route("/clear_dummy_data")
+@login_required
+def clear_dummy_data():
+    """Clear dummy data from session"""
+    session.pop('dummy_data', None)  # 'dummy_data'キーを削除、キーが存在しない場合は何もしない
+    return redirect(url_for('dummy_progress_ranking'))  # ランキングページにリダイレクト
+
+@app.route("/clear_all_sessions")
+@login_required
+def clear_all_sessions():
+    """Clear all session data"""
+    session.clear()  # 全てのセッションデータを削除
+    return redirect(url_for('dummy_progress_ranking'))  # ランキングページにリダイレクト
+
+
 
 
     
