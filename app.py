@@ -848,7 +848,7 @@ def dummy_progress_ranking():
                     ] 
 
                     # 0から100の間のランダムな進捗率を生成し、ダミーデータを生成
-                    dummy_data = [{'name': random.choice(nicknames), 'progress_rate': random.randint(0, 100)} for _ in range(10)]
+                    dummy_data = [{'name': random.choice(nicknames), 'progress_rate': random.randint(0, 30)} for _ in range(10)]
                     
                     # セッションに保存
                     session['dummy_data'] = dummy_data
@@ -925,6 +925,80 @@ def clear_all_sessions():
     return redirect(url_for('dummy_progress_ranking'))  # ランキングページにリダイレクト
 
 
+@app.route("/update_progress_rate_dummy")
+@login_required
+def update_progress_rate_dummy():
+    """Update progress rate of dummy users"""
+    try:
+        with connect_to_database() as conn:
+            with conn.cursor(cursor_factory=DictCursor) as cur:
+                cur.execute("SELECT id, progress_rate FROM goals")
+                real_users_data = {row['id']: row['progress_rate'] for row in cur.fetchall()}
+    except Exception as e:
+        print(e)
+        return render_template("apology.html", msg="失敗しました")
+
+    # Get previous progress rates from session
+    previous_users_data = session.get('previous_progress_rates', {})
+
+    # Calculate progress rate increase for real users
+    progress_rate_increases = {
+        user_id: real_users_data[user_id] - previous_users_data.get(user_id, 0)
+        for user_id in real_users_data
+    }
+
+    # Get dummy data from session
+    dummy_data = session.get('dummy_data', [])
+
+    # Ensure each dummy user has a rank
+    for dummy_user in dummy_data:
+        if 'rank' not in dummy_user:
+            dummy_user['rank'] = 0  # 初期値として0を設定
+
+    # Update dummy users' progress rates based on real users' progress rate increases
+    for user_id, increase in progress_rate_increases.items():
+        if increase == 0:
+            dummy_increase = 0
+        elif 1 <= increase <= 5:
+            dummy_increase = random.randint(1, 5)
+        elif 6 <= increase <= 10:
+            dummy_increase = random.randint(6, 10)
+        elif 11 <= increase <= 15:
+            dummy_increase = random.randint(11, 15)
+        elif 16 <= increase <= 20:
+            dummy_increase = random.randint(16, 20)
+        elif 21 <= increase <= 25:
+            dummy_increase = random.randint(21, 25)
+        elif increase >= 26:
+            dummy_increase = random.randint(26, 30)
+
+        # Update dummy users' progress rates
+        for dummy_user in dummy_data:
+            dummy_user['progress_rate'] += dummy_increase
+
+    # Ensure no dummy user's progress rate goes below 0
+    for dummy_user in dummy_data:
+        if dummy_user['progress_rate'] < 0:
+            dummy_user['progress_rate'] = 0
+
+    # Combine real users and dummy users data
+    combined_rankings = [{'name': f'RealUser{user_id}', 'progress_rate': progress_rate}
+                         for user_id, progress_rate in real_users_data.items()] + dummy_data
+
+    # Sort the combined data by progress rate
+    combined_rankings.sort(key=lambda x: x['progress_rate'], reverse=True)
+
+    # Assign ranks
+    rankings_with_ranks = [
+        {'name': user['name'], 'progress_rate': user['progress_rate'], 'rank': index + 1}
+        for index, user in enumerate(combined_rankings)
+    ]
+
+    # Update the session with the new dummy data and the current progress rates
+    session['dummy_data'] = dummy_data
+    session['previous_progress_rates'] = real_users_data
+
+    return redirect(url_for('dummy_progress_ranking'))
 
 
     
